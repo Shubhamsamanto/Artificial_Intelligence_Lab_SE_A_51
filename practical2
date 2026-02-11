@@ -1,0 +1,345 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "provenance": [],
+      "authorship_tag": "ABX9TyMTlTh4p+8TEGf8wFMiQ4z0",
+      "include_colab_link": true
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    },
+    "language_info": {
+      "name": "python"
+    }
+  },
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "view-in-github",
+        "colab_type": "text"
+      },
+      "source": [
+        "<a href=\"https://colab.research.google.com/github/Shubhamsamanto/Artificial_Intelligence_Lab_SE_A_51/blob/master/practical2\" target=\"_parent\"><img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Open In Colab\"/></a>"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "Demonstrate Breadth First Search and Depth First Search"
+      ],
+      "metadata": {
+        "id": "Ii6O6sEb2rdG"
+      }
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "bRV7D9Wh2TLH",
+        "outputId": "db57d11e-7a75-48cb-9289-6eda14d54705"
+      },
+      "source": [
+        "graph = {\n",
+        "    'A': ['B', 'C'],\n",
+        "    'B': ['A', 'D', 'E'],\n",
+        "    'C': ['A', 'F'],\n",
+        "    'D': ['B'],\n",
+        "    'E': ['B', 'F'],\n",
+        "    'F': ['C', 'E']\n",
+        "}\n",
+        "\n",
+        "def bfs(graph, start):\n",
+        "    visited = []\n",
+        "    queue = [start]\n",
+        "\n",
+        "    while queue:\n",
+        "        node = queue.pop(0)\n",
+        "        if node not in visited:\n",
+        "            visited.append(node)\n",
+        "            neighbors = graph[node]\n",
+        "            for neighbor in neighbors:\n",
+        "                if neighbor not in visited:\n",
+        "                    queue.append(neighbor)\n",
+        "    return visited\n",
+        "\n",
+        "def dfs(graph, start, visited=None):\n",
+        "    if visited is None:\n",
+        "        visited = []\n",
+        "    visited.append(start)\n",
+        "\n",
+        "    for neighbor in graph[start]:\n",
+        "        if neighbor not in visited:\n",
+        "            dfs(graph, neighbor, visited)\n",
+        "    return visited\n",
+        "\n",
+        "print(\"BFS traversal starting from 'A':\", bfs(graph, 'A'))\n",
+        "print(\"DFS traversal starting from 'A':\", dfs(graph, 'A'))"
+      ],
+      "execution_count": 1,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "BFS traversal starting from 'A': ['A', 'B', 'C', 'D', 'E', 'F']\n",
+            "DFS traversal starting from 'A': ['A', 'B', 'D', 'E', 'F', 'C']\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "Implementation of A* algorithm."
+      ],
+      "metadata": {
+        "id": "vEjiNQum2vh7"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import heapq\n",
+        "\n",
+        "def a_star_search(graph, start, goal, heuristic):\n",
+        "    # (f_cost, g_cost, current_node, path)\n",
+        "    priority_queue = [(0, 0, start, [start])]\n",
+        "    visited_costs = {start: 0}\n",
+        "\n",
+        "    while priority_queue:\n",
+        "        f_cost, g_cost, current_node, path = heapq.heappop(priority_queue)\n",
+        "\n",
+        "        if current_node == goal:\n",
+        "            return path, g_cost\n",
+        "\n",
+        "        for neighbor, weight in graph[current_node].items():\n",
+        "            new_g_cost = g_cost + weight\n",
+        "\n",
+        "            if neighbor not in visited_costs or new_g_cost < visited_costs[neighbor]:\n",
+        "                visited_costs[neighbor] = new_g_cost\n",
+        "                new_f_cost = new_g_cost + heuristic[neighbor]\n",
+        "                new_path = path + [neighbor]\n",
+        "                heapq.heappush(priority_queue, (new_f_cost, new_g_cost, neighbor, new_path))\n",
+        "\n",
+        "    return None, None # No path found\n",
+        "\n",
+        "# Example Usage:\n",
+        "# Define the graph as an adjacency list with weights\n",
+        "graph_a_star = {\n",
+        "    'A': {'B': 1, 'C': 3},\n",
+        "    'B': {'A': 1, 'D': 2, 'E': 4},\n",
+        "    'C': {'A': 3, 'F': 5},\n",
+        "    'D': {'B': 2},\n",
+        "    'E': {'B': 4, 'F': 1},\n",
+        "    'F': {'C': 5, 'E': 1}\n",
+        "}\n",
+        "\n",
+        "# Define heuristic values for each node (estimated cost from node to goal)\n",
+        "heuristic = {\n",
+        "    'A': 7,  # Assuming 'F' is the goal\n",
+        "    'B': 6,\n",
+        "    'C': 4,\n",
+        "    'D': 8,\n",
+        "    'E': 2,\n",
+        "    'F': 0\n",
+        "}\n",
+        "\n",
+        "start_node = 'A'\n",
+        "goal_node = 'F'\n",
+        "\n",
+        "path, cost = a_star_search(graph_a_star, start_node, goal_node, heuristic)\n",
+        "\n",
+        "if path:\n",
+        "    print(f\"A* path from {start_node} to {goal_node}: {path}\")\n",
+        "    print(f\"Total cost: {cost}\")\n",
+        "else:\n",
+        "    print(f\"No path found from {start_node} to {goal_node}.\")"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "Fm1CNgq92zDD",
+        "outputId": "a9f94be0-2d4d-4592-da35-7ef23adf447e"
+      },
+      "execution_count": 2,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "A* path from A to F: ['A', 'B', 'E', 'F']\n",
+            "Total cost: 6\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "Implement the basic Minimax algorithm for two-player deterministic games"
+      ],
+      "metadata": {
+        "id": "YM_Y-Nwt29hK"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "def minimax(node_index, depth, maximizing_player, scores):\n",
+        "    # Base case: if depth is 0 or node is a leaf node\n",
+        "    # In this simplified example, leaf nodes are implicitly handled by depth\n",
+        "    if depth == 0:\n",
+        "        return scores[node_index]\n",
+        "\n",
+        "    # Assuming a simple game tree where children are at fixed offsets\n",
+        "    # For a binary tree, left child is 2*node_index + 1, right is 2*node_index + 2\n",
+        "    left_child_index = 2 * node_index + 1\n",
+        "    right_child_index = 2 * node_index + 2\n",
+        "\n",
+        "    # Check if children exist in the scores array to avoid index errors for leaf nodes\n",
+        "    if left_child_index >= len(scores):\n",
+        "        return scores[node_index] # If no children, it's effectively a leaf node\n",
+        "\n",
+        "    if maximizing_player:\n",
+        "        best_value = -float('inf')\n",
+        "        # Consider left child\n",
+        "        best_value = max(best_value, minimax(left_child_index, depth - 1, False, scores))\n",
+        "        # Consider right child\n",
+        "        if right_child_index < len(scores):\n",
+        "            best_value = max(best_value, minimax(right_child_index, depth - 1, False, scores))\n",
+        "        return best_value\n",
+        "    else: # Minimizing player\n",
+        "        best_value = float('inf')\n",
+        "        # Consider left child\n",
+        "        best_value = min(best_value, minimax(left_child_index, depth - 1, True, scores))\n",
+        "        # Consider right child\n",
+        "        if right_child_index < len(scores):\n",
+        "            best_value = min(best_value, minimax(right_child_index, depth - 1, True, scores))\n",
+        "        return best_value\n",
+        "\n",
+        "# Example Usage:\n",
+        "# Represents the scores at the leaf nodes of a game tree\n",
+        "# For simplicity, let's assume a full binary tree structure for indexing\n",
+        "# Node indices:\n",
+        "#               0\n",
+        "#         1           2\n",
+        "#      3     4     5     6\n",
+        "# Scores at leaves (depth 2 for root): index 3, 4, 5, 6\n",
+        "scores = [3, 5, 2, 9, 12, 5, 23, 2]\n",
+        "\n",
+        "# Let's adjust scores to represent a tree where the root (index 0) has a depth of 2 to reach leaves\n",
+        "# We'll use more scores to simulate deeper trees or more complex structures.\n",
+        "# For example, if depth = 3, we need 2^3 = 8 leaf nodes. Total nodes = 2^(depth+1) - 1\n",
+        "# Let's use a simpler example where scores are directly for the leaf nodes\n",
+        "# and minimax calculates for a tree of specific depth.\n",
+        "\n",
+        "# Example 1: Simple game tree with 4 leaf nodes, depth 2 from root\n",
+        "# Tree structure:\n",
+        "#        Root (Max)\n",
+        "#       /        \\\n",
+        "#    Node1(Min)  Node2(Min)\n",
+        "#    /   \\       /    \\\n",
+        "#   3     5     2      9\n",
+        "\n",
+        "leaf_scores_ex1 = [3, 5, 2, 9] # Corresponding to nodes 3, 4, 5, 6 if root is 0, depth 2\n",
+        "\n",
+        "# Minimax function needs to be adapted for how 'scores' are indexed\n",
+        "# Let's redefine scores to be the values for a fixed-depth tree traversal\n",
+        "# For a tree where the root is at depth 0, and leaves are at depth 'max_depth':\n",
+        "# The 'scores' array will represent the values at the final depth.\n",
+        "\n",
+        "def minimax_with_tree_example(tree_depth, leaf_values):\n",
+        "    def find_best_value(current_depth, node_idx, is_maximizing_player):\n",
+        "        # Base case: if we reach the leaf node level\n",
+        "        if current_depth == tree_depth:\n",
+        "            # Calculate the index of the leaf node in the leaf_values array\n",
+        "            # This assumes a perfect binary tree for indexing.\n",
+        "            # The first leaf node (leftmost) at tree_depth is at index 2^tree_depth - 1 in a full tree.\n",
+        "            # So, its relative index among leaves is node_idx - (2**tree_depth - 1)\n",
+        "            leaf_index_in_array = node_idx - (2**tree_depth - 1)\n",
+        "            if 0 <= leaf_index_in_array < len(leaf_values):\n",
+        "                return leaf_values[leaf_index_in_array]\n",
+        "            else:\n",
+        "                # This case should ideally not happen with correct indexing and values\n",
+        "                # but handles scenarios where the tree is not perfectly full\n",
+        "                return 0 # Or some default value if no leaf exists\n",
+        "\n",
+        "        if is_maximizing_player:\n",
+        "            best_val = -float('inf')\n",
+        "            # Left child\n",
+        "            best_val = max(best_val, find_best_value(current_depth + 1, 2 * node_idx + 1, False))\n",
+        "            # Right child\n",
+        "            best_val = max(best_val, find_best_value(current_depth + 1, 2 * node_idx + 2, False))\n",
+        "            return best_val\n",
+        "        else:\n",
+        "            best_val = float('inf')\n",
+        "            # Left child\n",
+        "            best_val = min(best_val, find_best_value(current_depth + 1, 2 * node_idx + 1, True))\n",
+        "            # Right child\n",
+        "            best_val = min(best_val, find_best_value(current_depth + 1, 2 * node_idx + 2, True))\n",
+        "            return best_val\n",
+        "\n",
+        "    return find_best_value(0, 0, True) # Start from root (index 0), maximizing player\n",
+        "\n",
+        "# Example 1: Depth 2 game tree\n",
+        "# Leaf values: [3, 5, 2, 9]\n",
+        "# Expected output for max player: 5 (max(min(3,5), min(2,9)) = max(3,2) = 3 -> This is wrong.\n",
+        "# Should be max of what the min player would choose)\n",
+        "# Let's trace:\n",
+        "# Root (Max) calls (Min player for children)\n",
+        "#   Node 1 (Min) receives [3, 5] -> returns min(3,5) = 3\n",
+        "#   Node 2 (Min) receives [2, 9] -> returns min(2,9) = 2\n",
+        "# Root (Max) receives [3, 2] -> returns max(3,2) = 3\n",
+        "leaf_values_1 = [3, 5, 2, 9]\n",
+        "result_1 = minimax_with_tree_example(2, leaf_values_1)\n",
+        "print(f\"Result for leaf values {leaf_values_1} (depth 2): {result_1}\") # Expected: 3\n",
+        "\n",
+        "# Example 2: Depth 3 game tree\n",
+        "# Leaf values: [2, 3, 5, 9, 0, 1, 7, 4]\n",
+        "#       Root (Max)\n",
+        "#      /          \\\n",
+        "#   Node1(Min)   Node2(Min)\n",
+        "#   /   \\         /    \\\n",
+        "# N3(Max) N4(Max) N5(Max) N6(Max)\n",
+        "# / \\ / \\ / \\ / \\\n",
+        "# 2 3 5 9 0 1 7 4\n",
+        "\n",
+        "# Node 3 (Max) -> max(2,3) = 3\n",
+        "# Node 4 (Max) -> max(5,9) = 9\n",
+        "# Node 5 (Max) -> max(0,1) = 1\n",
+        "# Node 6 (Max) -> max(7,4) = 7\n",
+        "# Node 1 (Min) -> min(3,9) = 3\n",
+        "# Node 2 (Min) -> min(1,7) = 1\n",
+        "# Root (Max) -> max(3,1) = 3\n",
+        "leaf_values_2 = [2, 3, 5, 9, 0, 1, 7, 4]\n",
+        "result_2 = minimax_with_tree_example(3, leaf_values_2)\n",
+        "print(f\"Result for leaf values {leaf_values_2} (depth 3): {result_2}\") # Expected: 3"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "QHDtWas53AoZ",
+        "outputId": "b20a09e9-b52c-460e-e5f8-f471ac858a48"
+      },
+      "execution_count": 3,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Result for leaf values [3, 5, 2, 9] (depth 2): 3\n",
+            "Result for leaf values [2, 3, 5, 9, 0, 1, 7, 4] (depth 3): 3\n"
+          ]
+        }
+      ]
+    }
+  ]
+}
